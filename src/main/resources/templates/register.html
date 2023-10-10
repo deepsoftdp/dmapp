@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rejestracja</title>
+  <!-- Dodajemy link do Bootstrap CSS z CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-dark">
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-4">
+      <div class="card bg-light text-secondary">
+        <div class="card-header">
+          Rejestracja
+        </div>
+        <div class="card-body">
+          <!-- Dodaj pusty div do wyświetlania powiadomienia -->
+          <div id="notification" class="alert alert-danger" style="display: none;"></div>
+          <form id="registrationForm">
+            <div class="mb-3">
+              <label for="mail" class="form-label">Mail:</label>
+              <input type="email" id="mail" name="mail" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label for="password" class="form-label">Hasło:</label>
+              <input type="password" id="password" name="password" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label for="name" class="form-label">Imię:</label>
+              <input type="text" id="name" name="name" class="form-control" required>
+            </div>
+            <div class="d-grid gap-2">
+              <button type="button" class="btn btn-primary" onclick="registerUser()">Zarejestruj</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Dodajemy linki do Bootstrap JavaScript i Popper.js z CDN (jeśli są potrzebne) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.10.2/umd/popper.min.js" integrity="sha512-nnzkI2u2Dy6HMnzMIkh7CPd1KX445z38XIu4jG1jGw7x5tSL3VBjE44dY4ihMU1ijAQV930SPM12cCFrB18sVw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+   function registerUser() {
+    const formData = {
+        mail: document.getElementById('mail').value,
+        password: document.getElementById('password').value,
+        name: document.getElementById('name').value
+    };
+
+    fetch('/api/v1/user/save', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log(data); // Reakcja z serwera
+        const notification = document.getElementById('notification');
+
+        if (data.success) {
+            // Przekieruj użytkownika na inną stronę po udanej rejestracji
+            window.location.href = '/success'; // Zmień '/success' na odpowiednią ścieżkę
+        } else {
+            // W przypadku niepowodzenia, wyświetl błąd lub odpowiedni komunikat
+            console.error('Błąd rejestracji:', data.message);
+            notification.textContent = data.message;
+            notification.style.display = 'block'; // Wyświetl powiadomienie
+        }
+    })
+    .catch(error => {
+        console.error('Błąd:', error);
+    });
+}
+
+</script>
+</body>
+</html>

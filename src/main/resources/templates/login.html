@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logowanie</title>
+    <!-- Dodajemy link do Bootstrap CSS z CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-dark"> <!-- Dodaj klasę dla tła -->
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-4">
+            <div class="card bg-light text-secondary"> <!-- Dodaj klasę dla ciemnego motywu -->
+                <div class="card-header">
+                    Logowanie
+                </div>
+                <div class="card-body">
+                    <form id="loginForm">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Login:</label>
+                            <input type="text" id="username" name="username" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Hasło:</label>
+                            <input type="password" id="password" name="password" class="form-control" required>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-primary" onclick="loginUser()">Zaloguj</button>
+                            <a href="/register" class="btn btn-secondary">Zarejestruj</a> <!-- Przycisk "Zarejestruj" -->
+                        </div>
+                    </form>
+                    <!-- Dodaj pusty div do wyświetlania komunikatu -->
+                    <div id="notification" class="alert alert-danger mt-3" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Dodajemy linki do Bootstrap JavaScript i Popper.js z CDN (jeśli są potrzebne) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.10.2/umd/popper.min.js" integrity="sha512-nnzkI2u2Dy6HMnzMIkh7CPd1KX445z38XIu4jG1jGw7x5tSL3VBjE44dY4ihMU1ijAQV930SPM12cCFrB18sVw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+    function loginUser() {
+        const formData = {
+            mail: document.getElementById('username').value,
+            password: document.getElementById('password').value
+        };
+
+       fetch('/api/v1/user/login', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(formData)
+})
+.then(response => {
+    if (response.status === 200) {
+        return response.json(); // Pobierz dane odpowiedzi JSON
+    } else if (response.status === 400) {
+        // Obsłuż błąd walidacji lub nieprawidłowych danych
+        return response.json();
+    } else {
+        // Obsłuż inne błędy
+        throw new Error('Błąd logowania');
+    }
+})
+.then(data => {
+    console.log(data); // Reakcja z serwera
+    const notification = document.getElementById('notification');
+
+    if (data && data.status) {
+        // Wyświetl komunikat o sukcesie
+        notification.textContent = data.message;
+        notification.className = 'alert alert-success mt-3';
+        notification.style.display = 'block'; // Wyświetl komunikat
+
+        // Sprawdź role użytkownika
+        if (data.roles.includes('ROLE_USER')) {
+            // Przekieruj użytkownika na stronę USER
+            window.location.href = '/user';
+        } else if (data.roles.includes('ROLE_ADMIN')) {
+            // Przekieruj użytkownika na stronę ADMIN
+            window.location.href = '/admin';
+        } else {
+            // Obsłuż inne role lub brak roli
+            throw new Error('Nieznana rola użytkownika');
+        }
+    } else if (data && !data.status) {
+        // Wyświetl komunikat o błędzie
+        notification.textContent = data.message;
+        notification.style.display = 'block'; // Wyświetl komunikat
+    }
+})
+.catch(error => {
+    console.error('Błąd:', error);
+});
+}
+</script>
+</body>
+</html>
