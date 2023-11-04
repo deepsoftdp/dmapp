@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pl.deepsoft.dmapp.Entity.User;
+import pl.deepsoft.dmapp.Exception.AppException;
 import pl.deepsoft.dmapp.Service.UserService;
 
 import java.util.List;
@@ -29,10 +30,9 @@ public class AdminController {
         boolean success = userService.activateUser(userId);
         if (success) {
             return ResponseEntity.ok("Użytkownik został aktywowany.");
-        } else {
-            return ResponseEntity.badRequest().body("Nie można aktywować użytkownika.");
+        } throw new AppException("Nie można aktywować użytkownika.");
         }
-    }
+
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping("/deactivateUser/{userId}")
     public ResponseEntity<String> deactivateUser(@PathVariable int userId) {
@@ -40,7 +40,7 @@ public class AdminController {
         if (success) {
             return ResponseEntity.ok("Użytkownik został dezaktywowany.");
         } else {
-            return ResponseEntity.badRequest().body("Nie można dezaktywować użytkownika.");
+            throw new AppException("Nie można dezaktywować użytkownika.");
         }
     }
     @PreAuthorize("hasRole('ROLE_ADMIN')")
@@ -50,7 +50,7 @@ public class AdminController {
         if (success) {
             return ResponseEntity.ok("Użytkownik został usunięty.");
         } else {
-            return ResponseEntity.badRequest().body("Nie można usunąć użytkownika.");
+            throw new AppException("Nie można usunąć użytkownika.");
         }
     }
 

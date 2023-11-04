@@ -1,19 +1,23 @@
 package pl.deepsoft.dmapp.Service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import pl.deepsoft.dmapp.Dto.LoginDTO;
 import pl.deepsoft.dmapp.Dto.UserDTO;
 import pl.deepsoft.dmapp.Entity.User;
+import pl.deepsoft.dmapp.Exception.AppException;
+import pl.deepsoft.dmapp.Exception.BadRequestException;
+import pl.deepsoft.dmapp.Exception.NotAcceptableException;
+import pl.deepsoft.dmapp.Exception.NotFoundException;
 import pl.deepsoft.dmapp.Repo.UserRepo;
 import pl.deepsoft.dmapp.Response.LoginResponse;
 import pl.deepsoft.dmapp.Service.UserService;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
+
 import pl.deepsoft.dmapp.Service.EmailService;
 @Service
 public class UserIMPL implements UserService {
@@ -30,8 +34,9 @@ public class UserIMPL implements UserService {
     @Override
     public String addUser(UserDTO userDTO) {
         User existingUser = userRepo.findByMail(userDTO.getMail());
+
         if (existingUser != null) {
-            return "Użytkownik o podanym adresie e-mail już istnieje.";
+            throw new BadRequestException("Użytkownik o podanym adresie e-mail: "+userDTO.getMail()+" istnieje.");
         } else {
             User user = new User(
                     userDTO.getIdUsers(),
@@ -67,16 +72,16 @@ public class UserIMPL implements UserService {
                         String userRole = user1.getRoles();
                         return new LoginResponse("Zalogowano pomyślnie", true, userRole);
                     } else {
-                        return new LoginResponse("Konto nie jest aktywne", false);
+                        throw new AppException("Konto "+ user1.getMail() + " nie jest aktywne");
                     }
                 } else {
-                    return new LoginResponse("Logowanie nieudane", false);
+                    throw new NotAcceptableException("Logowanie nieudane");
                 }
             } else {
-                return new LoginResponse("Hasło nieprawidłowe", false);
+                throw new BadRequestException("Hasło nieprawidłowe");
             }
         } else {
-            return new LoginResponse("Email nie istnieje", false);
+            throw new NotFoundException("Email " +user1.getMail() +" nie istnieje");
         }
     }
 
@@ -93,7 +98,7 @@ public class UserIMPL implements UserService {
             userRepo.save(user);
             emailService.sendActivationEmail(user);
         } else {
-            throw new RuntimeException("Użytkownik o podanym identyfikatorze nie istnieje.");
+            throw new NotAcceptableException("Użytkownik o podanym identyfikatorze nie istnieje.");
         }
 
         return false;
@@ -107,7 +112,7 @@ public class UserIMPL implements UserService {
             user.setActive(false);
             userRepo.save(user);
         } else {
-            throw new RuntimeException("Użytkownik o podanym identyfikatorze nie istnieje.");
+            throw new AppException("Użytkownik o podanym identyfikatorze nie istnieje.");
         }
         return false;
     }
@@ -119,7 +124,7 @@ public class UserIMPL implements UserService {
             User user = optionalUser.get();
             userRepo.delete(user);
         } else {
-            throw new RuntimeException("Użytkownik o podanym identyfikatorze nie istnieje.");
+            throw new AppException("Użytkownik o podanym identyfikatorze nie istnieje.");
         }
 
         return false;

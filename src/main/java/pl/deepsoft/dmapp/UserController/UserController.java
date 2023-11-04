@@ -8,6 +8,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import pl.deepsoft.dmapp.Dto.LoginDTO;
 import pl.deepsoft.dmapp.Dto.UserDTO;
+import pl.deepsoft.dmapp.Exception.AppException;
+import pl.deepsoft.dmapp.Exception.NotAcceptableException;
 import pl.deepsoft.dmapp.Response.LoginResponse;
 import pl.deepsoft.dmapp.Service.UserService;
 
@@ -26,11 +28,7 @@ public class UserController {
 
         if (result.equals("Zarejestrowano pomyślnie")) {
             return ResponseEntity.ok("{\"success\": true}");
-        } else if (result.equals("Użytkownik o podanym adresie e-mail już istnieje.")) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"success\": false, \"message\": \"" + result + "\"}");
-        } else {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"success\": false, \"message\": \"Wystąpił błąd podczas rejestracji.\"}");
-        }
+        } else throw new NotAcceptableException("Użytkownik o takim mailu: "+ userDTO.getMail()+" istneije");
     }
     @PostMapping(path = "/login")
     public ResponseEntity<?> loginUser(@RequestBody LoginDTO loginDTO) {
@@ -43,8 +41,7 @@ public class UserController {
         } else if (loginResponse.getRoles().equals("ROLE_ADMIN")) {
             redirectUrl = "/admin";
         } else {
-            // Domyślny przypadek, na przykład, jeśli nie ma przypisanej roli
-            redirectUrl = "/";
+           throw new AppException("Coś poszło nie tak");
         }
 
         HttpHeaders headers = new HttpHeaders();

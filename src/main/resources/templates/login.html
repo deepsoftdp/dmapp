@@ -48,7 +48,7 @@
             password: document.getElementById('password').value
         };
 
-       fetch('/api/v1/user/login', {
+  fetch('/api/v1/user/login', {
     method: 'POST',
     headers: {
         'Content-Type': 'application/json'
@@ -57,45 +57,24 @@
 })
 .then(response => {
     if (response.status === 200) {
-        return response.json(); // Pobierz dane odpowiedzi JSON
-    } else if (response.status === 400) {
-        // Obsłuż błąd walidacji lub nieprawidłowych danych
         return response.json();
-    } else {
-        // Obsłuż inne błędy
-        throw new Error('Błąd logowania');
+    }else {
+        return response.json().then(data => {
+            throw new Error(data.message);
+        });
     }
 })
 .then(data => {
-    console.log(data); // Reakcja z serwera
-    const notification = document.getElementById('notification');
-
-    if (data && data.status) {
-        // Wyświetl komunikat o sukcesie
-        notification.textContent = data.message;
-        notification.className = 'alert alert-success mt-3';
-        notification.style.display = 'block'; // Wyświetl komunikat
-
-        // Sprawdź role użytkownika
-        if (data.roles.includes('ROLE_USER')) {
-            // Przekieruj użytkownika na stronę USER
-            window.location.href = '/user';
-        } else if (data.roles.includes('ROLE_ADMIN')) {
-            // Przekieruj użytkownika na stronę ADMIN
-            window.location.href = '/admin';
-        } else {
-            // Obsłuż inne role lub brak roli
-            throw new Error('Nieznana rola użytkownika');
-        }
-    } else if (data && !data.status) {
-        // Wyświetl komunikat o błędzie
-        notification.textContent = data.message;
-        notification.style.display = 'block'; // Wyświetl komunikat
-    }
+    // ...
 })
 .catch(error => {
     console.error('Błąd:', error);
+    // Wyświetl błąd na stronie
+    const notification = document.getElementById('notification');
+    notification.textContent = error.message;
+    notification.style.display = 'block';
 });
+
 }
 </script>
 </body>
